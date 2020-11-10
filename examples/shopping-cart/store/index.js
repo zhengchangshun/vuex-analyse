@@ -9,6 +9,22 @@ Vue.use(Vuex)
 const debug = process.env.NODE_ENV !== 'production'
 
 export default new Vuex.Store({
+  state: {
+    rootState: 'rootState'
+  },
+  mutations: {
+    rootMutation (state, payload) {
+      state.value = payload
+    }
+  },
+  actions: {
+    rootAction ({ commit }, payload) {
+      commit('updateValue', payload)
+    }
+  },
+  getters: {
+    rootGetter: state => state.rootState
+  },
   modules: {
     cart,
     products

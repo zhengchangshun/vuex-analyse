@@ -89,12 +89,4 @@ export default {
   getters,
   actions,
   mutations,
-  modules: {
-    cartDetail: {
-      namespaced: true,
-      state: {
-        test: '1106'
-      }
-    }
-  }
 }

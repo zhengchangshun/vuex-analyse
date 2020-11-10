@@ -90,7 +90,7 @@ export class Store {
     resetStoreVM(this, state)
 
     // apply plugins
-    // 插件注册
+    // 插件注册，对每个插件注入store实例，则插件中可以调用 dispatch、registerModule、subscribe 等实例方法
     plugins.forEach(plugin => plugin(this))
 
     // vuex devtool的处理
@@ -98,6 +98,7 @@ export class Store {
     if (useDevtools) {
       devtoolPlugin(this)
     }
+    debugger
   }
 
   // 获取state
@@ -508,14 +509,16 @@ function makeLocalContext (store, namespace, path) {
   const noNamespace = namespace === ''
 
   // 因为registerAction方法将action都根据（nameSpace + handlerName）都注册到store._action属性上；
-  // 如果不存在nameSpace，则方法名称就是handlerName，store.dispatch 方法就可以找到对的方法；
-  // 如果存在nameSpece，则需要将type转化为：'namespace + type',store.dispatch 方法就可以找到对的方法才能找到对应的方法
+  // 如果不存在nameSpace，则方法名称就是handlerName
+  // 如果存在nameSpece，则需要将type转化为：'namespace + type'
+  // store.dispatch 最终都是在store._actions中查找对应的方法名称
   const local = {
     dispatch: noNamespace ? store.dispatch : (_type, _payload, _options) => {
       const args = unifyObjectStyle(_type, _payload, _options)
       const { payload, options } = args
       let { type } = args
 
+      // options 不存在 或者  options.root 不为ture，则标识从子模块中获取 action。否则从root中操作
       if (!options || !options.root) {
         type = namespace + type
         if (__DEV__ && !store._actions[type]) {
@@ -527,11 +530,13 @@ function makeLocalContext (store, namespace, path) {
       return store.dispatch(type, payload)
     },
 
+    // commit的同dispatch ，也是根据 namespace 区分对应的type，然后在 store._mutations 中找到对应的方法执行
     commit: noNamespace ? store.commit : (_type, _payload, _options) => {
       const args = unifyObjectStyle(_type, _payload, _options)
       const { payload, options } = args
       let { type } = args
 
+      // options 不存在 或者  options.root 不为ture, 则标识从子模块中获取mutation，否则从root中操作
       if (!options || !options.root) {
         type = namespace + type
         if (__DEV__ && !store._mutations[type]) {
@@ -589,14 +594,17 @@ function makeLocalGetters (store, namespace) {
 function registerMutation (store, type, handler, local) {
   const entry = store._mutations[type] || (store._mutations[type] = [])
   entry.push(function wrappedMutationHandler (payload) {
+    // 注入了当前module下的state
     handler.call(store, local.state, payload)
   })
 }
 
-// 注册Action - action 按照（namespace + handelName） 维护在 store._action对象上，并在执行时 注入了 context 和 root的属性
+// 注册Action - action 按照 type（namespace + handelName -- 形如： a/b/ ） 维护在 store._action对象上，
+// 并在执行时 注入了 context 和 root的属性
 function registerAction (store, type, handler, local) {
   const entry = store._actions[type] || (store._actions[type] = [])
   entry.push(function wrappedActionHandler (payload) {
+    // 注入了当前module的context（local）的属性，以及root （store）的属性
     let res = handler.call(store, {
       dispatch: local.dispatch,
       commit: local.commit,
@@ -651,10 +659,22 @@ function getNestedState (state, path) {
   return path.reduce((state, key) => state[key], state)
 }
 
+// 针对 commit、dispatch的两种使用方式，做统一格式处理
+// 方式1：
+// store.commit('increment', {
+//   amount: 10
+// })
+//
+// 方式2：
+// store.commit({
+//   type: 'increment',
+//   amount: 10
+// })
+
 function unifyObjectStyle (type, payload, options) {
   if (isObject(type) && type.type) {
     options = payload
-    payload = type
+    payload = type  // 此时整个对象都赋值给payload，要获取参数，则需要使用 payload[key]的方式获取
     type = type.type
   }
 
