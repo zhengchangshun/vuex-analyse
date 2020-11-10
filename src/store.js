@@ -100,7 +100,7 @@ export class Store {
     }
   }
 
-  // 获取state
+  // 获取state -  通过 resetStoreVM 中实例化的 vm 对象，实现了数据的响应式
   get state () {
     return this._vm._data.$$state
   }
@@ -271,7 +271,6 @@ export class Store {
       assert(path.length > 0, 'cannot register the root module by using registerModule.')
     }
 
-    debugger
     this._modules.register(path, rawModule)
     // 调用installModule方法，递归实现state、action、mutation、getter根据各自的namespace注册
     installModule(this, this.state, path, this._modules.get(path), options.preserveState)
