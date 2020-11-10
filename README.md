@@ -7,4 +7,4 @@
 
 - [What is Vuex?](https://vuex.vuejs.org/)
 
-Vuex的源码学习，具体的学习笔记间代码中的注释
+Vuex的源码学习，具体的学习笔记参考代码中的注释
