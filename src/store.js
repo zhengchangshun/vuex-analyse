@@ -98,7 +98,6 @@ export class Store {
     if (useDevtools) {
       devtoolPlugin(this)
     }
-    debugger
   }
 
   // 获取state
@@ -272,6 +271,7 @@ export class Store {
       assert(path.length > 0, 'cannot register the root module by using registerModule.')
     }
 
+    debugger
     this._modules.register(path, rawModule)
     // 调用installModule方法，递归实现state、action、mutation、getter根据各自的namespace注册
     installModule(this, this.state, path, this._modules.get(path), options.preserveState)
