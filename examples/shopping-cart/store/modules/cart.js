@@ -89,4 +89,16 @@ export default {
   getters,
   actions,
   mutations,
+  modules: {
+    cartDetail: {
+      state: {
+        cartDetail: 'detail'
+      },
+      mutations: {
+        updateValue (state, payload) {
+          state.value = payload
+        }
+      }
+    }
+  }
 }

@@ -87,6 +87,8 @@ export class Store {
     // initialize the store vm, which is responsible for the reactivity
     // (also registers _wrappedGetters as computed properties)
 
+    debugger
+    // 传入的state为 this._module.root.state
     resetStoreVM(this, state)
 
     // apply plugins
@@ -115,7 +117,7 @@ export class Store {
   // 订阅 store 的 mutation。handler 会在每个 mutation 完成后调用，接收 mutation 和经过 mutation 后的状态作为参数
   commit (_type, _payload, _options) {
     // check object-style commit
-    // 类型检查
+    // 传入的格式统一
     const {
       type,
       payload,
@@ -392,6 +394,7 @@ function resetStoreVM (store, state, hot) {
     enableStrictMode(store)
   }
 
+  // 销毁旧的 vue 实例
   if (oldVm) {
     if (hot) {
       // dispatch changes in all subscribed watchers
@@ -408,7 +411,7 @@ function resetStoreVM (store, state, hot) {
 // 第二次调用的时候 store 即为当前的store实例， rootState 为 rootState（顶层state），path为['moduleName'], module 为 子module
 function installModule (store, rootState, path, module, hot) {
   const isRoot = !path.length
-  const namespace = store._modules.getNamespace(path)  // 根据path（key的集合）逐级拼接key值，形成namespace
+  const namespace = store._modules.getNamespace(path)  // 根据 path（moduleName的集合）逐级拼接key值，形成namespace
 
   // register in namespace map
   // 添加 _modulesNamespaceMap 属性，存储当前module
@@ -605,7 +608,7 @@ function registerAction (store, type, handler, local) {
   entry.push(function wrappedActionHandler (payload) {
     // 注入了当前module的context（local）的属性，以及root （store）的属性
     let res = handler.call(store, {
-      dispatch: local.dispatch,
+      dispatch: local.dispatch,  // 赋值后， dispatch执行的时候，环境已经发布变化， 因此 dispatch 需要通过 call 绑定 store
       commit: local.commit,
       getters: local.getters,
       state: local.state,

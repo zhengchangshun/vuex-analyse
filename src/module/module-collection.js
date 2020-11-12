@@ -29,8 +29,7 @@ export default class ModuleCollection {
   }
 
   // rawModule 结构为 {state,mutation,action}
-  // 对于rootModule来说，就是Vuex.Store实例化时的参数
-  // 对于嵌套模块来说，就是嵌套的module内容
+  // 对于rootModule来说，就是Vuex.Store实例化时的参数 ，对于嵌套模块来说，就是嵌套的module内容
   register (path, rawModule, runtime = true) {
     if (__DEV__) {
       assertRawModule(path, rawModule)
