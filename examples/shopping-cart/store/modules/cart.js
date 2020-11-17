@@ -91,6 +91,7 @@ export default {
   mutations,
   modules: {
     cartDetail: {
+      namespaced: true,
       state: {
         cartDetail: 'detail'
       },

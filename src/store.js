@@ -87,7 +87,6 @@ export class Store {
     // initialize the store vm, which is responsible for the reactivity
     // (also registers _wrappedGetters as computed properties)
 
-    debugger
     // 传入的state为 this._module.root.state
     resetStoreVM(this, state)
 
@@ -370,16 +369,11 @@ function resetStoreVM (store, state, hot) {
     // 将wrappedGetters的属性定义到store.getter中 ,其中get方法从 vue实例的compute中获取
     // 保证了外部获取getter时，其实是获取vue实例的属性，通过Vue的特性实现getter的响应式数据
     Object.defineProperty(store.getters, key, {
-      get: () => store._vm[key],
+      get: () => store._vm[key], // computed
       enumerable: true // for local getters
     })
   })
 
-  // use a Vue instance to store the state tree
-  // suppress warnings just in case the user has added
-  // some funky global mixins
-  const silent = Vue.config.silent
-  Vue.config.silent = true
   // store.vm被定义为Vue的实例，其中computed的属性定义为 partial(fn, store) ===》  fn(store)
   store._vm = new Vue({
     data: {
@@ -387,7 +381,6 @@ function resetStoreVM (store, state, hot) {
     },
     computed
   })
-  Vue.config.silent = silent
 
   // enable strict mode for new vm
   if (store.strict) {
@@ -412,7 +405,6 @@ function resetStoreVM (store, state, hot) {
 function installModule (store, rootState, path, module, hot) {
   const isRoot = !path.length
   const namespace = store._modules.getNamespace(path)  // 根据 path（moduleName的集合）逐级拼接key值，形成namespace
-
   // register in namespace map
   // 添加 _modulesNamespaceMap 属性，存储当前module
   if (module.namespaced) {
@@ -573,9 +565,11 @@ function makeLocalGetters (store, namespace) {
     const splitPos = namespace.length
     Object.keys(store.getters).forEach(type => {
       // skip if the target getter is not match this namespace
+      // 忽略 namespace 不匹配的方法 ，namespace：a/b/， getter: a/b/getterName
       if (type.slice(0, splitPos) !== namespace) return
 
       // extract local getter type
+      // 获取getterName
       const localType = type.slice(splitPos)
 
       // Add a port to the getters proxy.
